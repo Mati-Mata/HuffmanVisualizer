@@ -3,6 +3,8 @@ package com.mati.huffman.controller;
 import com.mati.huffman.model.CompressionMetrics;
 import com.mati.huffman.model.CompressionResult;
 import com.mati.huffman.service.HuffmanCompressionService;
+import com.mati.huffman.service.TextFileService;
+import com.mati.huffman.ui.HuffmanTreeView;
 import com.mati.huffman.ui.SymbolAnalysisMapper;
 import com.mati.huffman.ui.SymbolAnalysisRow;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -10,6 +12,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -17,25 +20,29 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.NoSuchFileException;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Coordinates the JavaFX interface with the reusable Huffman engine.
  */
 public final class MainController {
 
-    private static final String TREE_INITIAL_MESSAGE =
-            "Comprima un texto para generar el árbol";
-    private static final String TREE_READY_MESSAGE =
-            "Árbol generado. La visualización estará disponible en la Fase 9.";
-
     private final HuffmanCompressionService compressionService =
             new HuffmanCompressionService();
     private final SymbolAnalysisMapper analysisMapper =
             new SymbolAnalysisMapper();
+    private final TextFileService textFileService = new TextFileService();
 
     private CompressionResult currentResult;
+    private File lastDirectory;
 
     @FXML
     private TabPane mainTabPane;
@@ -86,7 +93,7 @@ public final class MainController {
     @FXML
     private Label averageLengthLabel;
     @FXML
-    private Label treePlaceholder;
+    private HuffmanTreeView huffmanTreeView;
 
     @FXML
     private void initialize() {
@@ -96,11 +103,53 @@ public final class MainController {
 
     @FXML
     private void onOpenFile() {
-        showAlert(
-                Alert.AlertType.INFORMATION,
-                "Abrir archivo",
-                "La apertura de archivos se implementará en una fase posterior."
+        FileChooser chooser = createTextFileChooser();
+        File selectedFile = chooser.showOpenDialog(
+                originalTextArea.getScene().getWindow()
         );
+        if (selectedFile == null) {
+            return;
+        }
+
+        rememberDirectory(selectedFile);
+        try {
+            String content = textFileService.readUtf8(selectedFile.toPath());
+            if (hasReplaceableState() && !confirmReplacement()) {
+                return;
+            }
+            loadFileContent(selectedFile, content);
+        } catch (CharacterCodingException exception) {
+            showAlert(
+                    Alert.AlertType.ERROR,
+                    "UTF-8 no válido",
+                    "No se abrió el archivo porque contiene una secuencia "
+                            + "inválida. Esta versión acepta únicamente UTF-8."
+            );
+        } catch (NoSuchFileException exception) {
+            showAlert(
+                    Alert.AlertType.ERROR,
+                    "Archivo no encontrado",
+                    "El archivo seleccionado ya no existe."
+            );
+        } catch (AccessDeniedException exception) {
+            showAlert(
+                    Alert.AlertType.ERROR,
+                    "Acceso denegado",
+                    "No hay permisos suficientes para leer el archivo."
+            );
+        } catch (IOException exception) {
+            showAlert(
+                    Alert.AlertType.ERROR,
+                    "No se pudo leer el archivo",
+                    readableIoMessage(exception)
+            );
+        } catch (SecurityException exception) {
+            showAlert(
+                    Alert.AlertType.ERROR,
+                    "Acceso denegado",
+                    "El sistema no permitió acceder al archivo seleccionado."
+            );
+        }
     }
 
     @FXML
@@ -197,7 +246,7 @@ public final class MainController {
                 result.roundTripSuccessful(),
                 "✓ Round-trip verificado por el motor Huffman."
         );
-        treePlaceholder.setText(TREE_READY_MESSAGE);
+        huffmanTreeView.setTree(result.root());
         resultsPane.setVisible(true);
         resultsPane.setManaged(true);
         decompressButton.setDisable(false);
@@ -224,7 +273,7 @@ public final class MainController {
         decompressButton.setDisable(true);
         analysisTab.setDisable(true);
         treeTab.setDisable(true);
-        treePlaceholder.setText(TREE_INITIAL_MESSAGE);
+        huffmanTreeView.clear();
     }
 
     private void configureAnalysisTable() {
@@ -257,6 +306,86 @@ public final class MainController {
         analysisTable.setColumnResizePolicy(
                 TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN
         );
+    }
+
+    private FileChooser createTextFileChooser() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Abrir archivo de texto");
+        chooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter(
+                        "Archivos de texto (*.txt)", "*.txt"
+                ),
+                new FileChooser.ExtensionFilter(
+                        "Todos los archivos (*.*)", "*.*"
+                )
+        );
+        if (lastDirectory != null
+                && lastDirectory.isDirectory()
+                && lastDirectory.canRead()) {
+            chooser.setInitialDirectory(lastDirectory);
+        }
+        return chooser;
+    }
+
+    private void rememberDirectory(File selectedFile) {
+        File parent = selectedFile.getParentFile();
+        if (parent != null && parent.isDirectory() && parent.canRead()) {
+            lastDirectory = parent;
+        }
+    }
+
+    private boolean hasReplaceableState() {
+        return !originalTextArea.getText().isEmpty() || currentResult != null;
+    }
+
+    private boolean confirmReplacement() {
+        Alert confirmation = new Alert(
+                Alert.AlertType.CONFIRMATION,
+                "El texto actual y cualquier resultado de compresión "
+                        + "se reemplazarán.",
+                ButtonType.OK,
+                ButtonType.CANCEL
+        );
+        confirmation.setTitle("Reemplazar contenido");
+        confirmation.setHeaderText("¿Deseas abrir el archivo seleccionado?");
+        if (originalTextArea.getScene() != null) {
+            confirmation.initOwner(originalTextArea.getScene().getWindow());
+        }
+        Optional<ButtonType> response = confirmation.showAndWait();
+        return response.isPresent() && response.get() == ButtonType.OK;
+    }
+
+    private void loadFileContent(File file, String content) {
+        resetResultState();
+        originalTextArea.setText(content);
+        fileNameLabel.setText(file.getName());
+        mainTabPane.getSelectionModel().select(homeTab);
+
+        if (content.isEmpty()) {
+            showAlert(
+                    Alert.AlertType.WARNING,
+                    "Archivo vacío",
+                    "El archivo se cargó correctamente, pero no contiene "
+                            + "texto para comprimir."
+            );
+        }
+    }
+
+    private static String readableIoMessage(IOException exception) {
+        String message = exception.getMessage();
+        if (message != null && message.contains("5 MiB")) {
+            return "El archivo supera el límite de "
+                    + TextFileService.MAX_FILE_SIZE_MIB
+                    + " MiB y no fue cargado.";
+        }
+        if (message != null
+                && message.contains("not a regular file")) {
+            return "La selección no corresponde a un archivo regular.";
+        }
+        if (message != null && message.contains("not readable")) {
+            return "El archivo seleccionado no se puede leer.";
+        }
+        return "Ocurrió un error de entrada/salida al leer el archivo.";
     }
 
     private void setVerificationState(boolean success, String message) {

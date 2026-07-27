@@ -12,9 +12,9 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Priority?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
+<?import com.mati.huffman.ui.HuffmanTreeView?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.mati.huffman.controller.MainController"
@@ -239,19 +239,11 @@
                 <Tab fx:id="treeTab" text="Árbol de Huffman"
                      closable="false" disable="true">
                     <content>
-                        <ScrollPane fitToWidth="true" fitToHeight="true"
+                        <ScrollPane fitToWidth="false" fitToHeight="false"
                                     pannable="true"
                                     styleClass="tree-scroll">
                             <content>
-                                <StackPane fx:id="treeContainer"
-                                           minHeight="560.0"
-                                           minWidth="820.0"
-                                           styleClass="tree-placeholder">
-                                    <Label fx:id="treePlaceholder"
-                                           text="Comprima un texto para generar el árbol"
-                                           wrapText="true"
-                                           styleClass="placeholder-text"/>
-                                </StackPane>
+                                <HuffmanTreeView fx:id="huffmanTreeView"/>
                             </content>
                         </ScrollPane>
                     </content>

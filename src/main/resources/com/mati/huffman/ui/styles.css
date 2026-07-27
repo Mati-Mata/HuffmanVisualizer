@@ -234,19 +234,65 @@
     -fx-text-background-color: #172033;
 }
 
-.tree-placeholder {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #cbd5e1;
-    -fx-border-style: segments(8, 6);
-    -fx-border-width: 2px;
-    -fx-border-radius: 16px;
-    -fx-background-radius: 16px;
-    -fx-padding: 40px;
+.huffman-tree-view {
+    -fx-background-color: #f8fafc;
 }
 
-.placeholder-text {
+.tree-message {
     -fx-text-fill: #64748b;
     -fx-font-size: 17px;
     -fx-font-weight: 600;
     -fx-text-alignment: center;
+}
+
+.tree-edge {
+    -fx-stroke: #64748b;
+    -fx-stroke-width: 2px;
+}
+
+.tree-edge-label {
+    -fx-min-width: 20px;
+    -fx-min-height: 20px;
+    -fx-alignment: center;
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 10px;
+    -fx-text-fill: #2349a6;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+}
+
+.tree-node {
+    -fx-border-width: 2px;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.10), 8, 0, 0, 2);
+    -fx-padding: 6px;
+}
+
+.tree-leaf {
+    -fx-background-color: #e8efff;
+    -fx-border-color: #315fce;
+}
+
+.tree-internal {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #94a3b8;
+}
+
+.tree-symbol {
+    -fx-text-fill: #172033;
+    -fx-font-size: 16px;
+    -fx-font-weight: 800;
+}
+
+.tree-frequency {
+    -fx-text-fill: #25324b;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.tree-unicode {
+    -fx-text-fill: #64748b;
+    -fx-font-family: "Cascadia Mono", "Consolas", monospace;
+    -fx-font-size: 11px;
 }

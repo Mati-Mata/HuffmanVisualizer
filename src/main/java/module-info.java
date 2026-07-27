@@ -7,4 +7,5 @@ module com.mati.huffman {
 
     exports com.mati.huffman;
     opens com.mati.huffman.controller to javafx.fxml;
+    opens com.mati.huffman.ui to javafx.fxml;
 }
