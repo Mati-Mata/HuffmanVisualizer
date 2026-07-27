@@ -1,9 +1,262 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.VBox?>
 
-<StackPane xmlns:fx="http://javafx.com/fxml"
-           fx:controller="com.mati.huffman.controller.MainController">
-    <Label text="Huffman Visualizer"/>
-</StackPane>
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mati.huffman.controller.MainController"
+            stylesheets="@styles.css"
+            prefWidth="1180.0"
+            prefHeight="800.0"
+            styleClass="app-root">
+    <center>
+        <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <Tab fx:id="homeTab" text="Inicio" closable="false">
+                    <content>
+                        <ScrollPane fitToWidth="true" pannable="true"
+                                    styleClass="page-scroll">
+                            <content>
+                                <VBox spacing="22.0" styleClass="page">
+                                    <padding>
+                                        <Insets top="28.0" right="34.0"
+                                                bottom="34.0" left="34.0"/>
+                                    </padding>
+
+                                    <VBox spacing="5.0">
+                                        <Label text="Huffman Visualizer"
+                                               styleClass="app-title"/>
+                                        <Label text="Explora cómo un árbol de Huffman transforma texto Unicode en una representación binaria."
+                                               wrapText="true"
+                                               styleClass="app-subtitle"/>
+                                    </VBox>
+
+                                    <VBox spacing="12.0"
+                                          styleClass="content-card">
+                                        <Label text="Texto original"
+                                               styleClass="section-title"/>
+                                        <Label text="El contenido se procesa exactamente como está escrito, incluidos espacios y saltos de línea."
+                                               wrapText="true"
+                                               styleClass="support-text"/>
+                                        <TextArea fx:id="originalTextArea"
+                                                  promptText="Escribe o pega aquí el texto que deseas comprimir…"
+                                                  wrapText="true"
+                                                  prefRowCount="8"
+                                                  styleClass="input-area">
+                                            <VBox.vgrow>
+                                                <Priority fx:constant="ALWAYS"/>
+                                            </VBox.vgrow>
+                                        </TextArea>
+                                        <HBox spacing="10.0"
+                                              alignment="CENTER_LEFT">
+                                            <Button text="Abrir archivo"
+                                                    onAction="#onOpenFile"
+                                                    styleClass="button-secondary"/>
+                                            <Label fx:id="fileNameLabel"
+                                                   text=""
+                                                   maxWidth="1.7976931348623157E308"
+                                                   styleClass="file-label">
+                                                <HBox.hgrow>
+                                                    <Priority fx:constant="ALWAYS"/>
+                                                </HBox.hgrow>
+                                            </Label>
+                                            <Button text="Limpiar"
+                                                    onAction="#onClear"
+                                                    styleClass="button-ghost"/>
+                                            <Button text="Comprimir"
+                                                    defaultButton="true"
+                                                    onAction="#onCompress"
+                                                    styleClass="button-primary"/>
+                                        </HBox>
+                                    </VBox>
+
+                                    <VBox fx:id="resultsPane" spacing="18.0"
+                                          visible="false" managed="false">
+                                        <Label text="Resultado"
+                                               styleClass="section-heading"/>
+
+                                        <TilePane prefColumns="3"
+                                                  hgap="14.0" vgap="14.0"
+                                                  prefTileWidth="250.0">
+                                            <children>
+                                                <VBox spacing="7.0"
+                                                      styleClass="stat-card">
+                                                    <Label text="Tamaño original UTF-8"
+                                                           styleClass="stat-label"/>
+                                                    <Label fx:id="originalSizeLabel"
+                                                           text="—"
+                                                           styleClass="stat-value"/>
+                                                </VBox>
+                                                <VBox spacing="7.0"
+                                                      styleClass="stat-card">
+                                                    <Label text="Mensaje Huffman"
+                                                           styleClass="stat-label"/>
+                                                    <Label fx:id="huffmanSizeLabel"
+                                                           text="—"
+                                                           styleClass="stat-value"/>
+                                                </VBox>
+                                                <VBox spacing="7.0"
+                                                      styleClass="stat-card">
+                                                    <Label text="Ahorro teórico"
+                                                           styleClass="stat-label"/>
+                                                    <Label fx:id="savingLabel"
+                                                           text="—"
+                                                           styleClass="stat-value"/>
+                                                </VBox>
+                                            </children>
+                                        </TilePane>
+
+                                        <VBox spacing="10.0"
+                                              styleClass="content-card">
+                                            <Label text="Cadena binaria comprimida"
+                                                   styleClass="section-title"/>
+                                            <TextArea fx:id="compressedTextArea"
+                                                      editable="false"
+                                                      wrapText="true"
+                                                      prefRowCount="6"
+                                                      styleClass="binary-area"/>
+                                            <Button fx:id="decompressButton"
+                                                    text="Descomprimir"
+                                                    disable="true"
+                                                    onAction="#onDecompress"
+                                                    styleClass="button-secondary"/>
+                                        </VBox>
+
+                                        <VBox spacing="10.0"
+                                              styleClass="content-card">
+                                            <Label text="Texto reconstruido"
+                                                   styleClass="section-title"/>
+                                            <TextArea fx:id="reconstructedTextArea"
+                                                      editable="false"
+                                                      wrapText="true"
+                                                      prefRowCount="6"/>
+                                            <Label fx:id="verificationLabel"
+                                                   text="Sin resultados"
+                                                   wrapText="true"
+                                                   styleClass="verification-status"/>
+                                        </VBox>
+
+                                        <Label text="El tamaño Huffman representa únicamente el mensaje codificado; no incluye árbol, tabla de códigos, encabezados ni metadatos."
+                                               wrapText="true"
+                                               styleClass="info-note"/>
+                                    </VBox>
+                                </VBox>
+                            </content>
+                        </ScrollPane>
+                    </content>
+                </Tab>
+
+                <Tab fx:id="analysisTab" text="Análisis"
+                     closable="false" disable="true">
+                    <content>
+                        <VBox spacing="18.0" styleClass="page">
+                            <padding>
+                                <Insets top="28.0" right="34.0"
+                                        bottom="34.0" left="34.0"/>
+                            </padding>
+                            <VBox spacing="5.0">
+                                <Label text="Análisis de símbolos"
+                                       styleClass="section-heading"/>
+                                <Label text="Frecuencias, probabilidades y códigos ordenados por punto de código Unicode."
+                                       styleClass="support-text"/>
+                            </VBox>
+                            <TilePane prefColumns="3" hgap="14.0"
+                                      vgap="14.0" prefTileWidth="240.0">
+                                <children>
+                                    <VBox spacing="7.0"
+                                          styleClass="stat-card">
+                                        <Label text="Total de símbolos"
+                                               styleClass="stat-label"/>
+                                        <Label fx:id="totalSymbolsLabel"
+                                               text="—"
+                                               styleClass="stat-value"/>
+                                    </VBox>
+                                    <VBox spacing="7.0"
+                                          styleClass="stat-card">
+                                        <Label text="Símbolos distintos"
+                                               styleClass="stat-label"/>
+                                        <Label fx:id="distinctSymbolsLabel"
+                                               text="—"
+                                               styleClass="stat-value"/>
+                                    </VBox>
+                                    <VBox spacing="7.0"
+                                          styleClass="stat-card">
+                                        <Label text="Longitud media"
+                                               styleClass="stat-label"/>
+                                        <Label fx:id="averageLengthLabel"
+                                               text="—"
+                                               styleClass="stat-value"/>
+                                    </VBox>
+                                </children>
+                            </TilePane>
+                            <TableView fx:id="analysisTable"
+                                       styleClass="analysis-table">
+                                <placeholder>
+                                    <Label text="Comprime un texto para ver el análisis."
+                                           styleClass="support-text"/>
+                                </placeholder>
+                                <columns>
+                                    <TableColumn fx:id="symbolColumn"
+                                                 text="Símbolo"
+                                                 prefWidth="120.0"/>
+                                    <TableColumn fx:id="unicodeColumn"
+                                                 text="Código Unicode"
+                                                 prefWidth="145.0"/>
+                                    <TableColumn fx:id="frequencyColumn"
+                                                 text="Frecuencia"
+                                                 prefWidth="115.0"/>
+                                    <TableColumn fx:id="probabilityColumn"
+                                                 text="Probabilidad"
+                                                 prefWidth="125.0"/>
+                                    <TableColumn fx:id="huffmanCodeColumn"
+                                                 text="Código Huffman"
+                                                 prefWidth="220.0"/>
+                                    <TableColumn fx:id="codeLengthColumn"
+                                                 text="Longitud"
+                                                 prefWidth="100.0"/>
+                                </columns>
+                                <VBox.vgrow>
+                                    <Priority fx:constant="ALWAYS"/>
+                                </VBox.vgrow>
+                            </TableView>
+                        </VBox>
+                    </content>
+                </Tab>
+
+                <Tab fx:id="treeTab" text="Árbol de Huffman"
+                     closable="false" disable="true">
+                    <content>
+                        <ScrollPane fitToWidth="true" fitToHeight="true"
+                                    pannable="true"
+                                    styleClass="tree-scroll">
+                            <content>
+                                <StackPane fx:id="treeContainer"
+                                           minHeight="560.0"
+                                           minWidth="820.0"
+                                           styleClass="tree-placeholder">
+                                    <Label fx:id="treePlaceholder"
+                                           text="Comprima un texto para generar el árbol"
+                                           wrapText="true"
+                                           styleClass="placeholder-text"/>
+                                </StackPane>
+                            </content>
+                        </ScrollPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+</BorderPane>
