@@ -1,10 +1,10 @@
-module com.example.huffmanvisualizer {
+module com.mati.huffman {
     requires javafx.controls;
     requires javafx.fxml;
 
     requires org.controlsfx.controls;
     requires org.kordamp.ikonli.javafx;
 
-    opens com.example.huffmanvisualizer to javafx.fxml;
-    exports com.example.huffmanvisualizer;
+    exports com.mati.huffman;
+    opens com.mati.huffman.controller to javafx.fxml;
 }
